@@ -3,7 +3,7 @@
 
 Tạo hai file:
   - ngay-cung-le.ics : các ngày cúng (mùng 1, rằm, lễ Tết âm lịch),
-                       mỗi ngày có nhắc trước 1 ngày lúc 9:00 sáng.
+                       mỗi ngày có nhắc trước 2 ngày lúc 9:00 sáng.
   - lich-am-hang-ngay.ics : ngày âm lịch của mọi ngày (không nhắc),
                        để xem âm lịch ngay trên lịch điện thoại.
 
@@ -83,8 +83,11 @@ def _fold(line):
     return "\r\n ".join(out)
 
 
-def tao_ics(ten_lich, su_kien, gio_nhac=None):
-    """su_kien: list (date, tiêu đề, mô tả). gio_nhac: giờ báo vào ngày hôm trước."""
+def tao_ics(ten_lich, su_kien, gio_nhac=None, ngay_truoc=1):
+    """su_kien: list (date, tiêu đề, mô tả).
+
+    gio_nhac: giờ báo nhắc; ngay_truoc: báo trước bao nhiêu ngày.
+    """
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dong = [
         "BEGIN:VCALENDAR",
@@ -107,13 +110,14 @@ def tao_ics(ten_lich, su_kien, gio_nhac=None):
             "TRANSP:TRANSPARENT",
         ]
         if gio_nhac is not None:
-            # Sự kiện cả ngày bắt đầu lúc 00:00; nhắc (24 - giờ) tiếng trước
-            # tức là đúng `gio_nhac` giờ của ngày hôm trước.
+            # Sự kiện cả ngày bắt đầu lúc 00:00; nhắc (24*ngày - giờ) tiếng
+            # trước, tức là đúng `gio_nhac` giờ của `ngay_truoc` ngày trước.
+            truoc = "Ngày mai" if ngay_truoc == 1 else f"Còn {ngay_truoc} ngày nữa"
             dong += [
                 "BEGIN:VALARM",
                 "ACTION:DISPLAY",
-                f"DESCRIPTION:{_escape('Ngày mai: ' + tieu_de)}",
-                f"TRIGGER:-PT{24 - gio_nhac}H",
+                f"DESCRIPTION:{_escape(truoc + ': ' + tieu_de)}",
+                f"TRIGGER:-PT{24 * ngay_truoc - gio_nhac}H",
                 "END:VALARM",
             ]
         dong.append("END:VEVENT")
@@ -130,7 +134,9 @@ def main():
     p.add_argument("--den", type=date.fromisoformat, default=date(hom_nay.year + 2, 12, 31),
                    help="ngày kết thúc (YYYY-MM-DD), mặc định hết năm sau nữa")
     p.add_argument("--gio-nhac", type=int, default=9, choices=range(0, 24), metavar="0-23",
-                   help="giờ báo nhắc vào ngày hôm trước, mặc định 9 (9:00 sáng)")
+                   help="giờ báo nhắc, mặc định 9 (9:00 sáng)")
+    p.add_argument("--ngay-truoc", type=int, default=2, choices=range(1, 8), metavar="1-7",
+                   help="báo trước bao nhiêu ngày, mặc định 2")
     p.add_argument("--thu-muc", default="lich", help="thư mục lưu file .ics")
     a = p.parse_args()
 
@@ -138,7 +144,7 @@ def main():
 
     cung = ngay_cung(a.tu, a.den)
     with open(os.path.join(a.thu_muc, "ngay-cung-le.ics"), "w", encoding="utf-8", newline="") as f:
-        f.write(tao_ics("Ngày cúng âm lịch", cung, gio_nhac=a.gio_nhac))
+        f.write(tao_ics("Ngày cúng âm lịch", cung, gio_nhac=a.gio_nhac, ngay_truoc=a.ngay_truoc))
 
     hang_ngay = []
     d = a.tu

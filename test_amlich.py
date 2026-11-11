@@ -34,6 +34,8 @@ class TestAmLich(unittest.TestCase):
         ics = tao_ics("x", [(date(2027, 2, 6), "Tết", "a,b")], gio_nhac=9)
         self.assertIn("TRIGGER:-PT15H", ics)
         self.assertIn("DTSTART;VALUE=DATE:20270206", ics)
+        ics2 = tao_ics("x", [(date(2027, 2, 6), "Tết", "")], gio_nhac=9, ngay_truoc=2)
+        self.assertIn("TRIGGER:-PT39H", ics2)  # 9:00 ngày 4/2/2027
         for line in ics.split("\r\n"):
             self.assertLessEqual(len(line.encode()), 75)
 

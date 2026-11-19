@@ -34,3 +34,41 @@ python3 -m unittest -v                                 # chạy kiểm tra
 *Nhập và xuất* → tạo lịch mới tên "Ngày cúng" trước, rồi nhập file vào lịch đó.
 Google **bỏ qua lời nhắc trong file**, nên vào cài đặt của lịch "Ngày cúng" →
 *Thông báo về sự kiện cả ngày* → đặt **2 ngày trước lúc 9:00**.
+
+# Chỉ đường né kẹt xe (Google Maps)
+
+`chi_duong.py` tìm đường **ưu tiên đoạn không kẹt hoặc ít kẹt xe**. Trên Google Maps,
+đoạn kẹt xe tô **đỏ**, đoạn đông xe tô **cam**. Công cụ lấy mọi tuyến Google gợi ý,
+đo số km đỏ/cam của từng tuyến, rồi chọn tuyến **ít đỏ nhất → ít cam nhất → nhanh nhất**.
+Tuyến được chọn không chậm hơn tuyến nhanh nhất quá 15 phút (đổi bằng `--cham-toi-da`).
+
+Kết quả là một link Google Maps có sẵn 3 điểm đi qua nằm trên tuyến ít kẹt đó.
+Mở link trên điện thoại thì Google Maps sẽ dẫn đúng tuyến này, thay vì tự chọn tuyến khác.
+
+```bash
+export GOOGLE_MAPS_API_KEY="khoá-của-bạn"
+python3 chi_duong.py "Chợ Bến Thành" "Sân bay Tân Sơn Nhất"
+python3 chi_duong.py "Nhà thờ Đức Bà" "Landmark 81" --xe-may      # tính đường xe máy
+python3 chi_duong.py "A" "B" --cham-toi-da 25 --mo                # chịu chậm 25 phút, mở link luôn
+```
+
+Ví dụ kết quả:
+
+```
+Tìm được 3 tuyến:
+   1. Võ Văn Kiệt: 9.8 km, 32 phút (kẹt thêm 12 phút) | đỏ 2.1 km, cam 1.4 km
+ → 2. Nguyễn Thị Minh Khai: 10.6 km, 35 phút (kẹt thêm 4 phút) | đỏ 0.0 km, cam 0.6 km
+   3. Điện Biên Phủ: 11.2 km, 38 phút (kẹt thêm 9 phút) | đỏ 0.9 km, cam 0.3 km
+
+Đã chọn tuyến 2: ít kẹt xe nhất.
+```
+
+**Lấy khoá API:** vào console.cloud.google.com → tạo dự án → bật **Routes API** →
+*Credentials* → *Create API key*. Google cho dùng miễn phí một hạn mức hằng tháng
+(cần gắn thẻ thanh toán).
+
+Lưu ý:
+- Tình trạng kẹt xe là của **lúc chạy lệnh**; nên chạy ngay trước khi đi.
+- Các điểm đi qua hiện thành điểm dừng trên Google Maps: cứ chạy qua, Maps tự dẫn tiếp.
+- Link mở Google Maps ở chế độ ô tô; với `--xe-may` tuyến được chọn theo xe máy,
+  bạn có thể bấm sang biểu tượng xe máy trong Maps (các điểm đi qua vẫn giữ).
